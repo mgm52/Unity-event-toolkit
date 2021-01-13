@@ -7,34 +7,40 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 
-//This class raises a sequence of conditioned game events.
+// This class raises a sequence of conditioned game events.
+// Add as a component to configure its properties in the inspector.
 [System.Serializable]
-public class ConditionedGEsequence
+public class GameEventSequence : MonoBehaviour
 {
+    public bool raiseOnStart = false;
     public List<ConditionedGameEvent> events;
 
-    //Coroutines can only be started from MonoBehaviours. BUT if we make ConditionedGameEventSequence a MonoBehaviour, its properties won't be exposed in the inspector. So instead it takes in a caller.
-    public void Raise(MonoBehaviour caller)
+    public void Start()
     {
-        events.ForEach(e => caller.StartCoroutine(e.Raise()));
+        if (raiseOnStart) Raise();
     }
 
-    //This subclass lets us easily augment a GameEvent with a parameter, delay, and condition. It can be configured in the inspector. ConditionedGameEventSequence contains them.
+    public void Raise()
+    {
+        events.ForEach(e => StartCoroutine(e.Raise()));
+    }
+
+    // This subclass lets us easily augment a GameEvent with a parameter, delay, and condition. It can be configured in the inspector. GameEventSequence contains them.
     [System.Serializable]
     public class ConditionedGameEvent
     {
         [SerializeField]
-        public GameEvent gameEvent;
+        public SO_GameEvent gameEvent;
         [SerializeField]
         public UnityEngine.Object eventParameter;
 
         public float waitTime = 0f;
 
-        //The event will only trigger under certain conditions. If no SBool is assigned, it's true by default.
-        public ScriptableBool activationCondition;
+        // The event will only trigger under certain conditions. If no SObool is assigned, it's true by default.
+        public SO_ScriptableBool activationCondition;
         public bool invertCondition = false;
 
-        //Test whether the activationCondition has been met. If so, delay for waitTime seconds, then raise the gameEvent.
+        // Test whether the activationCondition has been met. If so, delay for waitTime seconds, then raise the gameEvent.
         public IEnumerator Raise()
         {
             bool available = activationCondition == null ? true : activationCondition.val;
@@ -50,3 +56,4 @@ public class ConditionedGEsequence
     }
 
 }
+
